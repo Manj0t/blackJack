@@ -1,0 +1,12 @@
+Carl
+1300
+Rose
+1400
+John
+500
+Taylor
+500
+Rose
+900
+John
+800
