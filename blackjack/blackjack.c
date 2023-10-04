@@ -200,14 +200,14 @@ int main(void)
     {
         char option[7];
         int retry = 1;
-        while(retry == 1)
-        {
-            if(current->score == 21)
+         if(current->score == 21)
             {
                 printf("%s, You've already won with a score of 21. You get 1.5x your bet\n", current->name);
                 retry = 0;
                 continue;
             }
+        while(retry == 1)
+        {
             printf("%s these are your cards:\n", current->name);
             see_hand(current, DONT_ASK);
             printf("Please select one of the options below\n");
@@ -234,6 +234,7 @@ int main(void)
                 }
                 int bet = current->bet;
                 int new_bet = bet * 2;
+                current->bank -= bet;
                 current->bet = new_bet;
                 printf("Your new bet is: %i\n", current->bet);
                 printf("Your card:\n");
@@ -352,7 +353,6 @@ int main(void)
     prev = NULL;
     next = NULL;
     current = p;
-    saved_player *temp = malloc(sizeof(saved_player));
     sleep(3);
     if(dealer->score > 21)
     {
@@ -401,9 +401,32 @@ int main(void)
             current->bet = 0; 
             printf("Your Bank: $%i\n", current->bank);
         }
-        player_data = fopen("players.txt", "a");
-        fprintf(player_data, "%s\n%i\n", current->name, current->bank);
+        char buffer[25];
+        int keep_reading = 1;
+        int pos = 1;
+        player_data = fopen("players.txt", "r+");
+        do
+        {
+            fgets(buffer, 25, player_data);
+            if(feof(player_data))
+            {
+                keep_reading = 2;
+            }
+            else if ((strstr(buffer, current->name)) != NULL)
+            {
+                keep_reading = 0;
+                fseek(player_data, pos - 1, SEEK_SET);
+                fprintf(player_data, "%s\n%i", current->name, current->bank);
+            }
+            pos++;
+        } while (keep_reading == 1);
         fclose(player_data);
+        if(keep_reading == 2)
+        {
+            player_data = fopen("players.txt", "a");
+            fprintf(player_data, "%s\n%i\n", current->name, current->bank);
+            fclose(player_data);
+        }
         next = current->next;
         current->next = prev;
         prev = current;
@@ -451,7 +474,7 @@ player *assign_player(int player_count, FILE *player_data)
                 fgets(pulled_bank, 7, player_data);
                 bank = atoi(pulled_bank);
                 keep_reading = 0;
-                if(bank == 0)
+                if(bank < 20)
                 {
                     bank = 1000;
                 }
