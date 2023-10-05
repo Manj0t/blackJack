@@ -204,7 +204,6 @@ int main(void)
             {
                 printf("%s, You've already won with a score of 21. You get 1.5x your bet\n", current->name);
                 retry = 0;
-                continue;
             }
         while(retry == 1)
         {
@@ -251,6 +250,7 @@ int main(void)
                 print_card(card_pos, current_card);
                 cards[card_pos[0]][card_pos[1]] = 0;
                 printf("\n");
+                printf("Your current hand:\n");
                 see_hand(current, ASK);
                 current->score = do_score(current);
                 retry = 0;
@@ -275,6 +275,7 @@ int main(void)
                     cards[card_pos[0]][card_pos[1]] = 0;
                     printf("\n");
                     current->card_count++;
+                    printf("Your current hand:\n");
                     see_hand(current, ASK);
                     current->score = do_score(current);
                     if(current->score > 21)
@@ -401,32 +402,52 @@ int main(void)
             current->bet = 0; 
             printf("Your Bank: $%i\n", current->bank);
         }
-        char buffer[25];
-        int keep_reading = 1;
-        int pos = 1;
-        player_data = fopen("players.txt", "r+");
-        do
-        {
-            fgets(buffer, 25, player_data);
-            if(feof(player_data))
-            {
-                keep_reading = 2;
-            }
-            else if ((strstr(buffer, current->name)) != NULL)
-            {
-                keep_reading = 0;
-                fseek(player_data, pos - 1, SEEK_SET);
-                fprintf(player_data, "%s\n%i", current->name, current->bank);
-            }
-            pos++;
-        } while (keep_reading == 1);
-        fclose(player_data);
-        if(keep_reading == 2)
-        {
-            player_data = fopen("players.txt", "a");
-            fprintf(player_data, "%s\n%i\n", current->name, current->bank);
-            fclose(player_data);
+ player_data = fopen("players.txt", "r+");
+    if (player_data == NULL) {
+        // Handle file opening error
+        printf("Error opening file.\n");
+        return;
+    }
+   FILE *temp_file = fopen("temp_players.txt", "w");
+
+    if (temp_file == NULL) {
+        // Handle file opening error
+        printf("Error opening file(s).\n");
+        return;
+    }
+
+    char buffer[25];
+    int player_found = 0;
+
+    while (fgets(buffer, sizeof(buffer), player_data) != NULL) {
+        if (strstr(buffer, current->name) != NULL) {
+            // Write the updated data to the new file
+            fprintf(temp_file, "%s\n%d\n", current->name, current->bank);
+            fgets(buffer, sizeof(buffer), player_data);
+            player_found = 1;
+        } else {
+            // Copy unchanged data to the new file
+            fputs(buffer, temp_file);
         }
+    }
+
+    fclose(player_data);
+    fclose(temp_file);
+
+    // Remove the old file and rename the new file
+    remove("players.txt");
+    rename("temp_players.txt", "players.txt");
+
+    // If the player was not found in the original file, append to the new file
+    if (!player_found) {
+        temp_file = fopen("players.txt", "a");
+        if (temp_file != NULL) {
+            fprintf(temp_file, "%s\n%d\n", current->name, current->bank);
+            fclose(temp_file);
+        } else {
+            printf("Error opening file for append.\n");
+        }
+    }
         next = current->next;
         current->next = prev;
         prev = current;
@@ -604,14 +625,6 @@ void print_card(int card_pos[], int current_card)
 }
 void see_hand(player *p, int ask)
 {
-    char answer[4];
-    if(ask == ASK)
-    {
-        printf("Would you like to see your current hand? ");
-        scanf("%s", answer);
-    }
-    if(strcmp(answer, "Yes") == 0 || strcmp(answer, "yes") == 0 || strcmp(answer, "YES") == 0 || strcmp(answer, "Y") == 0 || strcmp(answer, "y") == 0 || ask == DONT_ASK)
-    {
         for(int i = 0; i < p->card_count; i++)
         {
             int current_card = p->cards[i];
@@ -623,7 +636,6 @@ void see_hand(player *p, int ask)
             }
         }
         printf("\n");
-    }
 }
 int do_score(player *p)
 {
@@ -651,7 +663,7 @@ int do_score(player *p)
     Ace can be 1 or 11 in blackjack, but no one's going to pick ace to be 14 if it means they bust
     If player has an ace and it being worth 11 doesn't cause the player to bust, ace will be 11
     */
-    if(check > 0 && score + 10 < 21)
+    if(check > 0 && score + 10 <= 21)
     {
         score += 10;
     }
