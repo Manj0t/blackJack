@@ -21,31 +21,34 @@ typedef struct player
     int suit[12];
     int bet;
     int card_count;
+    //Pointer to next struct for linked list
     struct player *next;
 }
 player;
 
-typedef struct saved_player
-{
-    char name[25];
-    int bank;
-}
-saved_player;
-
+//Assigns players at the start of the game
 player *assign_player(int player_count, FILE *player_data);
+//Returns linked list back from last player to first
 player *start_of_list(player *p, int player_count);
 
+//Calculates player's scores
 int do_score(player *p);
 
+//Prints each player's score
 void print_scores(player *p, int player_count);
+//Free's allocated memory for player struct
 void free_players(player *p);
+//Show's play's current hands
 void see_hand(player *p, int ask);
+//Randomly selects cards for player
 void random_card(int card_pos[2]);
+//Show's player's hand
 void print_card(int cards_pos[], int current_card);
 
 int main(void)
 {
     const int MIN_BET = 20;
+    //Matrix as deck of cards
     int cards[4][13] = {{2,3,4,5,6,7,8,9,10,J,Q,K,A}, 
                         {2,3,4,5,6,7,8,9,10,J,Q,K,A},
                         {2,3,4,5,6,7,8,9,10,J,Q,K,A},
@@ -58,19 +61,21 @@ int main(void)
         return 1;
     }
     printf("*******************************************\n");
-    printf("*********  Welcome to Blackjack  **********\n");
+    printf("*********  Welcome to Blackjack!  *********\n");
     printf("*******************************************\n\n");
     printf("Enter amount of players: ");
     scanf("%i", &player_count);
     printf("\nKeep player names no larger than 25 characters\n");
     printf("Player names may also not include any spaces\n\n");
-    //assign each players name and score into struct p
+    //Open's file for reading player data
     FILE *player_data;
     player_data = fopen("players.txt", "r");
     if(player_data == NULL)
     {
+        //If file does not exist, it is created
         player_data = fopen("players.txt", "w");
         fclose(player_data);
+        //Reopens for reading
         player_data = fopen("players.txt", "r");
         if(player_data == NULL)
         {
@@ -78,6 +83,7 @@ int main(void)
             return 1;
         }
     }
+    //assign each players name and score into struct p
     player *p = assign_player(player_count, player_data);
     fclose(player_data);
     //prints player name and starting score
@@ -91,6 +97,10 @@ int main(void)
     for(int i = 0; i < player_count; i++)
     {
         int bet;
+        /*
+        bank stores player's bank and will subtract the player's bet from it
+        If bank - bet is less than zero, the player's bank will be left unchanged and will be asked to input another bet
+        */
         int bank;
         do
         {
@@ -98,6 +108,7 @@ int main(void)
             printf("%s place your bet:\n", current->name);
             scanf("%i", &bet);
             bank -= bet;
+            //Checks to see if player's bet is less than the minimum bet
             if(bet < MIN_BET)
             {
                 printf("The minimum bet is %i, please enter another bet\n", MIN_BET);
@@ -112,6 +123,12 @@ int main(void)
             current->bank = bank;
         }
         while(bank < 0 || bet < MIN_BET);
+        /*
+        next will hold the node pointing to the next player in the linked list
+        current->next will equal what prev was, in this case the node will be pointing backwards to reverse the linked list
+        prev will equal the current player
+        current = next, will move to the next player in the linked list
+        */
         next = current->next;
         current->next = prev;
         prev = current;
@@ -121,18 +138,20 @@ int main(void)
     //return back to start of list p
     p = start_of_list(p, player_count);
     printf("\n");
-    //assigns starting cards to players
     current = p;
     prev = NULL;
     next = NULL;
+    //assigns starting cards to players
     for(int i = 0; i < player_count; i++)
     {
         printf("%s's cards:\n", current->name);
         for(int j = 0; j < 2; j++)
         {
+            //card_poas[0] is the suit of the card, card_pos[1] is the card number
             int card_pos[2];
             do
             {
+                //Assigns each player cards
                 random_card(card_pos);
                 current->cards[j] = cards[card_pos[0]][card_pos[1]];
                 current->suit[j] = card_pos[0];
@@ -141,7 +160,7 @@ int main(void)
             //Set bounds in while loop to always be within bounds
             while (cards[card_pos[0]][card_pos[1]] < 2 || cards[card_pos[0]][card_pos[1]] > 14);
             int current_card = cards[card_pos[0]][card_pos[1]];
-            print_card(card_pos, current_card);
+            print_card(card_pos, current->cards[j]);
             if(j == 0)
             {
                 printf(", ");
@@ -402,7 +421,7 @@ int main(void)
             current->bet = 0; 
             printf("Your Bank: $%i\n", current->bank);
         }
- player_data = fopen("players.txt", "r+");
+    player_data = fopen("players.txt", "r+");
     if (player_data == NULL) {
         // Handle file opening error
         printf("Error opening file.\n");
