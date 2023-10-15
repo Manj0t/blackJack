@@ -64,8 +64,13 @@ int main(void)
     printf("*******************************************\n");
     printf("*********  Welcome to Blackjack!  *********\n");
     printf("*******************************************\n\n");
-    printf("Enter amount of players: ");
-    scanf("%i", &player_count);
+    //runs until player amount it between 1 and 7
+    do
+    {
+        printf("Amount of players must be between 1 and 7\n");
+        printf("Enter amount of players: ");
+        scanf("%i", &player_count);
+    } while(player_count > 0 && player_count < 8);
     printf("\nKeep player names no larger than 25 characters\n");
     printf("Player names may also not include any spaces\n\n");
     //Open's file for reading player data
