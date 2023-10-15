@@ -2,14 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #define A 14
 #define K 13
 #define Q 12
 #define J 11
-#define ASK 0
-#define DONT_ASK 1
 
 //defines players
 typedef struct player
