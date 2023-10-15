@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #define A 14
 #define K 13
@@ -61,13 +62,13 @@ int main(void)
     printf("*******************************************\n");
     printf("*********  Welcome to Blackjack!  *********\n");
     printf("*******************************************\n\n");
-    //runs until player amount it between 1 and 7
+    //Runs while player_count isn't between 1 and 7
     do
     {
         printf("Amount of players must be between 1 and 7\n");
         printf("Enter amount of players: ");
         scanf("%i", &player_count);
-    } while(player_count > 0 && player_count < 8);
+    } while (player_count < 1 || player_count > 7);
     printf("\nKeep player names no larger than 25 characters\n");
     printf("Player names may also not include any spaces\n\n");
     //Open's file for reading player data
@@ -536,7 +537,6 @@ int main(void)
     free_players(p);
     free(dealer);
 }
-
 //assigns each players name and score
 player *assign_player(int player_count, FILE *player_data)
 {
@@ -579,10 +579,10 @@ player *assign_player(int player_count, FILE *player_data)
             fgets(pulled_bank, 7, player_data);
             bank = atoi(pulled_bank);
             keep_reading = 0;
-            //sets player's bank to 1000 if they have less than $20
+            //sets player's bank to 100 if they have less than $20
             if(bank < 20)
             {
-                bank = 1000;
+                bank = 100;
             }
             fseek(player_data, 0L, SEEK_SET);
         }
